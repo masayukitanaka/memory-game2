@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tactile Mind | Word Collection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-dim": "#5d523d",
+                    "surface-container-high": "#e4e9e8",
+                    "surface-tint": "#3b6761",
+                    "inverse-primary": "#cbfaf3",
+                    "on-secondary-container": "#315a45",
+                    "on-surface": "#2d3433",
+                    "inverse-on-surface": "#9b9d9d",
+                    "secondary-fixed": "#bfedd1",
+                    "secondary-container": "#bfedd1",
+                    "on-tertiary": "#fff8f1",
+                    "secondary": "#3e6752",
+                    "on-surface-variant": "#596060",
+                    "tertiary": "#6a5d48",
+                    "on-error-container": "#6e0a12",
+                    "on-tertiary-container": "#635742",
+                    "primary-container": "#bdece5",
+                    "on-secondary-fixed-variant": "#3b644e",
+                    "surface-container": "#eaefee",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed-dim": "#efddc2",
+                    "outline-variant": "#acb3b2",
+                    "surface-bright": "#f8faf9",
+                    "primary-dim": "#2f5a55",
+                    "tertiary-container": "#fdecd0",
+                    "surface-container-low": "#f0f4f3",
+                    "secondary-dim": "#325b46",
+                    "inverse-surface": "#0b0f0f",
+                    "on-primary": "#e2fffa",
+                    "on-secondary": "#e6ffee",
+                    "surface-variant": "#dde4e3",
+                    "on-primary-fixed": "#194641",
+                    "surface-container-highest": "#dde4e3",
+                    "error-dim": "#67040d",
+                    "on-secondary-fixed": "#1d4733",
+                    "primary-fixed": "#bdece5",
+                    "on-tertiary-fixed": "#504531",
+                    "error-container": "#fa746f",
+                    "on-primary-fixed-variant": "#37635e",
+                    "tertiary-fixed": "#fdecd0",
+                    "on-primary-container": "#2d5954",
+                    "secondary-fixed-dim": "#b1dfc3",
+                    "primary": "#3b6761",
+                    "background": "#f8faf9",
+                    "outline": "#757c7b",
+                    "on-background": "#2d3433",
+                    "surface": "#f8faf9",
+                    "primary-fixed-dim": "#afddd6",
+                    "surface-dim": "#d4dbda",
+                    "error": "#a83836",
+                    "on-error": "#fff7f6",
+                    "on-tertiary-fixed-variant": "#6d614b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #f8faf9;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #3b6761 0%, #bdece5 100%);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<nav class="w-full sticky top-0 z-50 bg-[#f8faf9]/70 dark:bg-[#2d3433]/70 backdrop-blur-xl">
+<div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+<div class="text-2xl font-bold text-[#3b6761] dark:text-[#bdece5]">Tactile Mind</div>
+<div class="hidden md:flex items-center gap-8 font-plus-jakarta-sans text-sm tracking-wide">
+<a class="text-[#acb3b2] hover:text-[#3b6761] transition-colors" href="#">Home</a>
+<a class="text-[#3b6761] border-b-2 border-[#3b6761] pb-1" href="#">Collection</a>
+<a class="text-[#acb3b2] hover:text-[#3b6761] transition-colors" href="#">Progress</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#3b6761]" data-icon="account_circle">account_circle</button>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-8 py-12 flex gap-12 relative">
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col gap-4 sticky top-28 h-[calc(100vh-120px)] w-64 bg-[#f0f4f3] rounded-r-[3rem] p-6 shadow-[0px_20px_40px_rgba(45,52,51,0.06)]">
+<div class="mb-6">
+<h2 class="font-headline font-bold text-xl text-primary">Learning Status</h2>
+<p class="font-body text-xs text-on-surface-variant">Zen Practice</p>
+</div>
+<nav class="flex flex-col gap-3 font-manrope text-sm">
+<div class="flex items-center gap-3 px-4 py-2 text-[#acb3b2]">
+<span class="material-symbols-outlined" data-icon="stars">stars</span>
+<span>Level 12</span>
+</div>
+<div class="flex items-center gap-3 bg-white rounded-full px-4 py-2 font-bold text-primary">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span>Daily Topic: Nature</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2 text-[#acb3b2]">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+<span>XP: 450</span>
+</div>
+</nav>
+<div class="mt-auto pt-8">
+<div class="bg-primary/5 rounded-lg p-4">
+<p class="text-xs font-bold text-primary-dim uppercase tracking-tighter mb-2">Weekly Goal</p>
+<div class="h-1.5 w-full bg-secondary-fixed-dim rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3 rounded-full"></div>
+</div>
+<p class="text-[10px] mt-2 text-on-surface-variant">24/40 Words Mastered</p>
+</div>
+</div>
+</aside>
+<!-- Content Canvas -->
+<div class="flex-1">
+<!-- Header Section -->
+<header class="mb-16">
+<h1 class="font-headline font-extrabold text-4xl mb-4 tracking-tight">The Library</h1>
+<p class="font-body text-on-surface-variant text-lg max-w-xl">
+                    Your personal collection of captured concepts. Each card represents a memory solidified through practice.
+                </p>
+</header>
+<!-- Filters Section (Organized Library Look) -->
+<section class="flex flex-wrap items-center gap-3 mb-12">
+<button class="hero-gradient text-on-primary px-6 py-2 rounded-full text-sm font-bold shadow-md transition-transform active:scale-95">All Fragments</button>
+<button class="bg-surface-container-lowest text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium border border-outline-variant/10 hover:bg-surface-container-low transition-all">Nature</button>
+<button class="bg-surface-container-lowest text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium border border-outline-variant/10 hover:bg-surface-container-low transition-all">Emotions</button>
+<button class="bg-surface-container-lowest text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium border border-outline-variant/10 hover:bg-surface-container-low transition-all">Space</button>
+<button class="bg-surface-container-lowest text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium border border-outline-variant/10 hover:bg-surface-container-low transition-all">Philosophy</button>
+<div class="ml-auto flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">sort</span>
+<span class="text-xs font-bold uppercase tracking-widest">Recent First</span>
+</div>
+</section>
+<!-- Word Gallery (Bento-style Grid) -->
+<section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+<!-- Card 1 (Large Featured) -->
+<article class="md:col-span-2 xl:col-span-2 bg-surface-container-lowest p-8 rounded-xl shadow-[0px_20px_40px_rgba(45,52,51,0.06)] flex flex-col md:flex-row gap-8 group hover:translate-y-[-4px] transition-all duration-300">
+<div class="md:w-1/2 aspect-video md:aspect-square rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="misty deep forest with tall pine trees and soft ambient light filtering through the canopy morning fog" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI0ZstLW-41J5MnUBMePoyoq4LOnHURSSPJnscIt001dh4Rj0irWGv5ZX-OSLouw1SHzVoaaAC1xnAw7jaA5owgu-SEd914SVkhCNcOPYWfA3GdnoThPHDe7IAJLU-up4qjTNR2ce0_0gsgu904yINmQDD6ZBJ_timkJ6duismGEGlvRWgWKylewgdVip6SZOUXSLgnAvnIVnn51uHW5PTTq23VJPrQn0HEYfvJlDNWcFkVgon4vjaUWjG5CzpID1ThvZRNoicpj0"/>
+<div class="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
+</div>
+<div class="md:w-1/2 flex flex-col justify-center">
+<div class="flex items-center gap-2 mb-4">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Mastered</span>
+<span class="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Nature • Oct 12</span>
+</div>
+<h3 class="font-headline font-bold text-3xl mb-2 text-primary">Komorebi</h3>
+<p class="font-body text-xl text-on-surface-variant mb-6 italic">"Sunlight filtering through trees"</p>
+<div class="mt-auto flex items-center gap-4">
+<button class="material-symbols-outlined text-primary p-2 bg-primary/5 rounded-full" data-icon="volume_up">volume_up</button>
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:text-primary transition-colors" data-icon="bookmark" style="font-variation-settings: 'FILL' 1;">bookmark</button>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface-container-lowest p-6 rounded-lg shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:translate-y-[-4px] transition-all duration-300">
+<div class="aspect-square rounded-lg overflow-hidden mb-6">
+<img class="w-full h-full object-cover" data-alt="abstract calm ocean waves at dusk with smooth blue and teal water ripples soft focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAixjQGIP_OZZLV3JvvBLylccRbj7z3q9ap9Je8kT_jybhsHMC2tMurguqsXGAZROD8XD56JoXIlqqxF4F8mO77ThORTzuCk4sq_j2bzRvNm2KglWWpaPokRC0tshE6h50y9dkNOOqXIYtRDvXk4QdfpG1Bm_fIj1YNVpsqDShsm6q0t4ihhFfAVucvNTNREqu-bnlE4c2cC3YFySLUgbIPChB9dcBY0OZ2zy87HI4VOWda5LyLsJypW4sCVu5fsBvBW355KPPkfmA"/>
+</div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline font-bold text-xl text-primary">Nagi</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="water_drop">water_drop</span>
+</div>
+<p class="font-body text-on-surface-variant mb-4 italic">"The Lull of the Sea"</p>
+<div class="h-1 w-full bg-surface-container-low rounded-full">
+<div class="h-full bg-primary-fixed w-full rounded-full"></div>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="bg-surface-container-lowest p-6 rounded-lg shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:translate-y-[-4px] transition-all duration-300">
+<div class="aspect-square rounded-lg overflow-hidden mb-6 bg-tertiary-container/30 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="close-up of ancient textured stone wall with shadows and soft directional lighting minimalist aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdPewN-sZi7dPxrgoekvxzEg9QQag-CeoYFY8S61dkL1RO0imxgg80O6G17gjvexfKytdbwnBrNZ3_C5wuOA5p7_DepXHnXOe587CDPZD3T4tWDES22VBTtl_b4odvza2Q3I97WnzMG0TtXkvC4IPYwfFVXF5OACbL75N92yNwsExd0NJ8w8WiGHBcCglhux8p9dpuU9OrAmFNsKkh_Q1_Yjx9svTkT05CwZFi4RMRPctBl-vNyYQCWZPZAxNg9tkk3ctV8nOQvQ8"/>
+</div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline font-bold text-xl text-primary">Wabi-Sabi</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="history_edu">history_edu</span>
+</div>
+<p class="font-body text-on-surface-variant mb-4 italic">"Beauty in Imperfection"</p>
+<div class="h-1 w-full bg-surface-container-low rounded-full">
+<div class="h-full bg-primary-fixed w-1/2 rounded-full"></div>
+</div>
+</article>
+<!-- Card 4 -->
+<article class="bg-surface-container-lowest p-6 rounded-lg shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:translate-y-[-4px] transition-all duration-300">
+<div class="aspect-square rounded-lg overflow-hidden mb-6">
+<img class="w-full h-full object-cover" data-alt="silhouette of a person standing on a hilltop looking at a vibrant orange and yellow sunset minimalist horizon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5Iy0MVUGU1yywVa6rGnepaWNUejocgf1HUyZeu1m8zMwldFqkU0k9gppBLi97TxfqvdrdT-wZIQLVxeKxpUVPeJJ643yoPW117DBzh9fyyDKSJun3Rod5GU5Mn1hdRHtWx4KBDjesGhQfI-C6OxgezUkQD27nIylyApgGQwD-mx7nR67CdZWuIKO43eu_mVb41Ce4ZJRMv7DnS0YrHmqWvpC1fNxdjV2FsYx8dpaUr6ZwUm2xvZQqmFq7EMEH4OZBSuzZpfjtoL0"/>
+</div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline font-bold text-xl text-primary">Yuugen</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="brightness_4">brightness_4</span>
+</div>
+<p class="font-body text-on-surface-variant mb-4 italic">"Profound Mystery"</p>
+<div class="h-1 w-full bg-surface-container-low rounded-full">
+<div class="h-full bg-primary-fixed w-3/4 rounded-full"></div>
+</div>
+</article>
+<!-- Card 5 (Small Bento) -->
+<article class="bg-primary-container/20 p-8 rounded-xl border border-primary/5 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-4xl text-primary mb-4" data-icon="add_circle">add_circle</span>
+<h3 class="font-headline font-bold text-lg text-on-primary-container">Capture New Words</h3>
+<p class="font-body text-sm text-on-surface-variant mt-2 mb-6">Continue your Zen Practice to fill your collection.</p>
+<button class="bg-primary text-on-primary px-8 py-3 rounded-full text-sm font-bold transition-all hover:shadow-lg active:scale-95">Enter Practice</button>
+</article>
+</section>
+</div>
+</main>
+<!-- Bottom Nav for Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#f8faf9]/90 backdrop-blur-xl z-50 px-6 py-4 flex justify-around items-center">
+<button class="flex flex-col items-center gap-1 text-[#acb3b2]">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#3b6761]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Collection</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#acb3b2]">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Stats</span>
+</button>
+</nav>
+<!-- Floating Decorative Element -->
+<div class="fixed bottom-12 right-12 hidden xl:block">
+<div class="bg-surface-container-lowest p-6 rounded-full shadow-[0px_20px_40px_rgba(45,52,51,0.06)] border border-outline-variant/10 flex flex-col items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="spa">spa</span>
+<p class="text-[10px] font-bold text-primary uppercase vertical-lr tracking-widest mt-4">ZEN FLOW</p>
+</div>
+</div>
+</body></html>

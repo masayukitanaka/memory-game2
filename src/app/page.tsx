@@ -1,52 +1,146 @@
-import Image from "next/image";
+import Link from "next/link";
+
+const games = [
+	{
+		id: "basic-greetings",
+		title: "Basic Greetings",
+		description: "Hello, thank you, goodbye... Learn everyday greetings through matching",
+		pairs: 8,
+		level: "Beginner",
+		accent: "from-primary to-primary-container",
+	},
+	{
+		id: "food-and-drinks",
+		title: "Food & Drinks",
+		description: "Match food and drink vocabulary to build your culinary lexicon",
+		pairs: 10,
+		level: "Beginner",
+		accent: "from-[#4a7a6d] to-[#b8e8d4]",
+	},
+	{
+		id: "travel-essentials",
+		title: "Travel Essentials",
+		description: "Essential words and phrases for your next journey abroad",
+		pairs: 12,
+		level: "Intermediate",
+		accent: "from-[#5b7a6e] to-[#c2e8da]",
+	},
+	{
+		id: "emotions",
+		title: "Emotions",
+		description: "Learn to express feelings and emotions with rich vocabulary",
+		pairs: 10,
+		level: "Intermediate",
+		accent: "from-[#3d706a] to-[#b0e0d6]",
+	},
+	{
+		id: "business-basics",
+		title: "Business Basics",
+		description: "Master commonly used words and phrases in professional settings",
+		pairs: 14,
+		level: "Advanced",
+		accent: "from-[#2d5c56] to-[#a8d8ce]",
+	},
+	{
+		id: "idioms",
+		title: "Idioms & Phrases",
+		description: "Discover common idioms and fixed expressions through play",
+		pairs: 8,
+		level: "Advanced",
+		accent: "from-[#3b6761] to-[#bdece5]",
+	},
+];
+
+function LevelBadge({ level }: { level: string }) {
+	const styles: Record<string, string> = {
+		Beginner: "bg-primary-container/60 text-primary",
+		Intermediate: "bg-secondary-container/60 text-[#3d706a]",
+		Advanced: "bg-[#e8d8f0]/60 text-[#5a4a6a]",
+	};
+
+	return (
+		<span
+			className={`inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${styles[level] ?? ""}`}
+		>
+			{level}
+		</span>
+	);
+}
 
 export default function Home() {
 	return (
-		<div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-			<main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-				<Image className="dark:invert" src="/next.svg" alt="Next.js logo" width={180} height={38} priority />
-				<ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-					<li className="mb-2 tracking-[-.01em]">
-						Get started by editing{" "}
-						<code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-							src/app/page.tsx
-						</code>
-						.
-					</li>
-					<li className="tracking-[-.01em]">Save and see your changes instantly.</li>
-				</ol>
-
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Read our docs
-					</a>
+		<div className="min-h-screen">
+			{/* Navigation - Glassmorphism */}
+			<nav className="sticky top-0 z-50 bg-surface/70 backdrop-blur-[24px]">
+				<div className="max-w-6xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between">
+					<span className="font-display text-xl font-bold tracking-tight text-on-surface">
+						Tactile Mind
+					</span>
 				</div>
-			</main>
-			<footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-					Learn
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-					Go to nextjs.org →
-				</a>
-			</footer>
+			</nav>
+
+			{/* Hero Section */}
+			<section className="pt-20 pb-10 sm:pt-28 sm:pb-14 px-6 sm:px-10">
+				<div className="max-w-6xl mx-auto">
+					<div className="max-w-2xl">
+						<h1 className="font-display text-[clamp(2.2rem,5vw,3.5rem)] font-extrabold leading-[1.1] tracking-tight text-on-surface">
+							Flip, match,
+							<br />
+							remember.
+						</h1>
+						<p className="mt-6 text-lg sm:text-xl leading-relaxed text-on-surface-variant max-w-lg">
+							Build your vocabulary through the calm ritual of a memory card game.
+							At your own pace, one pair at a time.
+						</p>
+					</div>
+				</div>
+			</section>
+
+			{/* Game Cards Section */}
+			<section className="px-6 sm:px-10 pb-24">
+				<div className="max-w-6xl mx-auto">
+					<h2 className="font-display text-sm font-semibold tracking-widest uppercase text-on-surface-variant mb-10">
+						Games
+					</h2>
+
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+						{games.map((game) => (
+							<Link
+								key={game.id}
+								href={`/games/${game.id}`}
+								className="group block"
+							>
+								<article className="relative bg-surface-lowest rounded-[2rem] p-8 pt-10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:scale-[1.02]">
+									{/* Accent gradient strip */}
+									<div
+										className={`h-1.5 w-16 rounded-full bg-gradient-to-r ${game.accent} mb-7 transition-all duration-300 group-hover:w-24`}
+									/>
+
+									<div className="flex items-start justify-between gap-3 mb-4">
+										<h3 className="font-display text-xl font-bold text-on-surface leading-snug">
+											{game.title}
+										</h3>
+										<LevelBadge level={game.level} />
+									</div>
+
+									<p className="text-sm leading-relaxed text-on-surface-variant mb-8">
+										{game.description}
+									</p>
+
+									<div className="flex items-center justify-between">
+										<span className="text-xs font-medium text-on-surface-variant tracking-wide">
+											{game.pairs} pairs
+										</span>
+										<span className="text-xs font-semibold text-primary opacity-0 translate-x-[-4px] transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
+											Play →
+										</span>
+									</div>
+								</article>
+							</Link>
+						))}
+					</div>
+				</div>
+			</section>
 		</div>
 	);
 }

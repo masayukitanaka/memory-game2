@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tactile Mind | Serene Language Practice</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-dim": "#5d523d",
+                      "surface-container-high": "#e4e9e8",
+                      "surface-tint": "#3b6761",
+                      "inverse-primary": "#cbfaf3",
+                      "on-secondary-container": "#315a45",
+                      "on-surface": "#2d3433",
+                      "inverse-on-surface": "#9b9d9d",
+                      "secondary-fixed": "#bfedd1",
+                      "secondary-container": "#bfedd1",
+                      "on-tertiary": "#fff8f1",
+                      "secondary": "#3e6752",
+                      "on-surface-variant": "#596060",
+                      "tertiary": "#6a5d48",
+                      "on-error-container": "#6e0a12",
+                      "on-tertiary-container": "#635742",
+                      "primary-container": "#bdece5",
+                      "on-secondary-fixed-variant": "#3b644e",
+                      "surface-container": "#eaefee",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed-dim": "#efddc2",
+                      "outline-variant": "#acb3b2",
+                      "surface-bright": "#f8faf9",
+                      "primary-dim": "#2f5a55",
+                      "tertiary-container": "#fdecd0",
+                      "surface-container-low": "#f0f4f3",
+                      "secondary-dim": "#325b46",
+                      "inverse-surface": "#0b0f0f",
+                      "on-primary": "#e2fffa",
+                      "on-secondary": "#e6ffee",
+                      "surface-variant": "#dde4e3",
+                      "on-primary-fixed": "#194641",
+                      "surface-container-highest": "#dde4e3",
+                      "error-dim": "#67040d",
+                      "on-secondary-fixed": "#1d4733",
+                      "primary-fixed": "#bdece5",
+                      "on-tertiary-fixed": "#504531",
+                      "error-container": "#fa746f",
+                      "on-primary-fixed-variant": "#37635e",
+                      "tertiary-fixed": "#fdecd0",
+                      "on-primary-container": "#2d5954",
+                      "secondary-fixed-dim": "#b1dfc3",
+                      "primary": "#3b6761",
+                      "background": "#f8faf9",
+                      "outline": "#757c7b",
+                      "on-background": "#2d3433",
+                      "surface": "#f8faf9",
+                      "primary-fixed-dim": "#afddd6",
+                      "surface-dim": "#d4dbda",
+                      "error": "#a83836",
+                      "on-error": "#fff7f6",
+                      "on-tertiary-fixed-variant": "#6d614b"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Plus Jakarta Sans"],
+                      "body": ["Manrope"],
+                      "label": ["Manrope"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #f8faf9;
+            color: #2d3433;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #3b6761 0%, #bdece5 100%);
+        }
+        .ghost-border {
+            border: 1px solid rgba(172, 179, 178, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="w-full sticky top-0 z-50 bg-[#f8faf9]/70 backdrop-blur-xl transition-colors">
+<div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+<div class="text-2xl font-bold text-[#3b6761] font-headline tracking-tight">Tactile Mind</div>
+<div class="hidden md:flex items-center gap-8 font-headline text-sm tracking-wide">
+<a class="text-[#3b6761] border-b-2 border-[#3b6761] pb-1 transition-colors" href="#">Home</a>
+<a class="text-[#acb3b2] hover:text-[#3b6761] transition-colors" href="#">Collection</a>
+<a class="text-[#acb3b2] hover:text-[#3b6761] transition-colors" href="#">Progress</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#3b6761] transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Mobile Bottom / Tablet Side Logic) -->
+<aside class="fixed left-0 top-0 h-full w-64 p-6 hidden lg:flex flex-col gap-4 bg-[#f0f4f3] rounded-r-xl shadow-[0px_20px_40px_rgba(45,52,51,0.06)] z-40 mt-20">
+<div class="mb-6">
+<h3 class="font-headline text-lg font-bold text-primary">Learning Status</h3>
+<p class="text-xs text-on-surface-variant font-body">Zen Practice</p>
+</div>
+<div class="space-y-4">
+<div class="bg-white rounded-full px-4 py-2 font-bold flex items-center gap-3 text-primary transition-all translate-x-1 cursor-default">
+<span class="material-symbols-outlined" data-icon="stars" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="font-body text-sm">Level 12</span>
+</div>
+<div class="text-[#acb3b2] px-4 py-2 flex items-center gap-3 hover:bg-white/50 rounded-full transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-body text-sm">Daily Topic: Nature</span>
+</div>
+<div class="text-[#acb3b2] px-4 py-2 flex items-center gap-3 hover:bg-white/50 rounded-full transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+<span class="font-body text-sm">XP: 450</span>
+</div>
+</div>
+</aside>
+<main class="max-w-7xl mx-auto px-6 lg:pl-80 pt-8 pb-24">
+<!-- Hero Section -->
+<section class="mb-16 relative overflow-hidden rounded-xl bg-surface-container-low p-8 md:p-12 lg:p-16 flex flex-col md:flex-row items-center gap-12">
+<div class="flex-1 z-10 text-center md:text-left">
+<h1 class="font-headline text-4xl md:text-5xl lg:text-6xl font-extrabold text-on-surface mb-6 leading-tight">
+                    Quiet your mind. <br/><span class="text-primary">Master language.</span>
+</h1>
+<p class="font-body text-lg text-on-surface-variant mb-10 max-w-lg mx-auto md:mx-0">
+                    A meditative approach to vocabulary. Connect with Japanese, Spanish, or French through tactile memory rituals.
+                </p>
+<button class="bg-primary hover:opacity-90 text-on-primary px-10 py-4 rounded-full font-headline font-semibold text-lg hero-gradient shadow-lg transition-transform active:scale-95 flex items-center gap-3 mx-auto md:mx-0">
+                    Start Game
+                    <span class="material-symbols-outlined">play_arrow</span>
+</button>
+</div>
+<div class="flex-1 relative w-full h-64 md:h-96">
+<div class="absolute inset-0 rounded-xl overflow-hidden shadow-2xl transform md:rotate-3 translate-x-4">
+<img alt="Mindful learning" class="w-full h-full object-cover" data-alt="Close-up of a minimalist wooden desk with a single green leaf in a ceramic vase and a stack of textured cream-colored paper cards" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2mB86yvwDNFjZ3ydHvjGikSBpP2POqxM7WviANHk5SlgMhNaP1NISRxJ1JrAvloCdqt-hZ-UnPNShI88AoToZxJciLwl5QCG1YNpXNbtdPr0DrHdPqORs9YaXZEh40-_OKIuyija-u_XYvrgtT3X2f0zYpS8gh1KZMwzb22DHkmgx9zEK5hASjwkfN31bjOIrVD4uWsUztkEjLFs0o8k2vCClglTDe0rPb9Urt1H6Z3tCtxZ7WLjhez51D6NQ9x3HYRFajEVzbjo"/>
+</div>
+<div class="absolute inset-0 border-4 border-primary-container/30 rounded-xl transform -rotate-2 -translate-x-4"></div>
+</div>
+</section>
+<!-- Categories Bento Grid -->
+<section class="mb-16">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline text-2xl font-bold text-on-surface">Choose Your Sanctuary</h2>
+<p class="font-body text-on-surface-variant">Focus on the words that matter most today.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Nature Card -->
+<div class="group bg-surface-container-lowest rounded-lg p-1 flex flex-col h-full shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:scale-[1.02] transition-all duration-300">
+<div class="aspect-square rounded-lg overflow-hidden mb-4">
+<img alt="Nature category" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Sunlight filtering through dense green forest leaves with soft morning mist and mossy ground textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjIjIkxliPBNGz0BZ8b03QtmldXICn1NjwG70Otg6KgUhL-MtSe-mONWoEdZWUcKiU9n6sxebfpHzB3aCU4-MXKPakpVESIrhf2FdjSy6F8TAMmlv-Bh8boLlIOumtkWAzZjWPQtMMDgCbpTK2kw1lXdsoGt-Pbk85AmZhc7Od01V5tB22QwraBiboyk6FYBa7ld5eCMRfJJn1C2X2kvdlmwh3iTr6L9XhJJ0PPpyZ23PvOT47ha4yQesjHuRaR935mBb3l_cU940"/>
+</div>
+<div class="px-5 pb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Nature</h3>
+<p class="text-sm font-body text-on-surface-variant mb-4">84 words • Forests, Oceans, Flora</p>
+<div class="h-1 w-full bg-surface-container rounded-full">
+<div class="h-full bg-primary w-2/3 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Food Card -->
+<div class="group bg-surface-container-lowest rounded-lg p-1 flex flex-col h-full shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:scale-[1.02] transition-all duration-300">
+<div class="aspect-square rounded-lg overflow-hidden mb-4">
+<img alt="Food category" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Overhead shot of artisanal ceramic plates with fresh herbs, figs, and rustic sourdough bread on a soft gray linen tablecloth" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACzyV6jYXnkBeuMedneRkpyf2KIhDiPye847ZwXgOajTDtTFN6L2Gcw2XxExBnNXl3NBB3EKRwtxpngtzq948daNI4gC9T4u4oObi_W_zQqs2Iwf9rouPHxu9GsZO5XTqARXx72MTdXo5pz3OE-UuQ7qvKQhWitm9v5K1b026eAuZdcgc03bP4CRQdmQv-IeeZ0d-8VAGhhyED7Wg9h9NQhZvvtQS2xW-ty4ueyWtgH2VxRTVRjuNqHsMraUK_LtpzQ9xa1kLli3c"/>
+</div>
+<div class="px-5 pb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Gastronomy</h3>
+<p class="text-sm font-body text-on-surface-variant mb-4">62 words • Flavors, Rituals, Dining</p>
+<div class="h-1 w-full bg-surface-container rounded-full">
+<div class="h-full bg-primary w-1/4 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Travel/Architecture -->
+<div class="group bg-surface-container-lowest rounded-lg p-1 flex flex-col h-full shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:scale-[1.02] transition-all duration-300">
+<div class="aspect-square rounded-lg overflow-hidden mb-4">
+<img alt="Travel category" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Minimalist narrow cobblestone alleyway in a quiet European village with white-washed walls and soft afternoon shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV2ip-DBKg9Mbx0d4Oy45NbIwuNTUoUeNNVXnFOyHTLb3m_ppA3ciZEwe4W0DFsNuaGPsy9nPjg2K4465U9ftUKTxbihXv5zPfOVllKQFA-d9K1e9t9JM-OQ1P68bh5ucCtWwAQWJfsOn4s7my3KsKC0r7GlSBAh4xTAo0L76k2nqc268q5w3bZAOvD89hZ2YQ8BZJehPkPy3wqMiajb5J2ZzNmA0Wkf-jyaL0hzf_Z31YO49AZdLHSsVgjetdxbhH6D734_IFptA"/>
+</div>
+<div class="px-5 pb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Space &amp; Travel</h3>
+<p class="text-sm font-body text-on-surface-variant mb-4">45 words • Landmarks, Cities, Paths</p>
+<div class="h-1 w-full bg-surface-container rounded-full">
+<div class="h-full bg-primary w-0 rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Progress Overview -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+<div class="bg-surface-container-low rounded-xl p-8 flex flex-col justify-between">
+<div>
+<h2 class="font-headline text-2xl font-bold text-on-surface mb-2">Daily Rhythm</h2>
+<p class="text-on-surface-variant font-body mb-8">You've completed 15 minutes of practice today.</p>
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<span class="font-body text-on-surface font-semibold">Streak</span>
+<span class="font-headline text-primary font-bold">12 Days</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body text-on-surface font-semibold">Accuracy</span>
+<span class="font-headline text-primary font-bold">94%</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body text-on-surface font-semibold">New Mastery</span>
+<span class="font-headline text-primary font-bold">8 Words</span>
+</div>
+</div>
+</div>
+<button class="mt-8 text-primary font-headline font-bold flex items-center gap-2 hover:translate-x-2 transition-transform">
+                    View full progress
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="bg-primary text-on-primary rounded-xl p-8 flex flex-col justify-center relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 opacity-10">
+<span class="material-symbols-outlined text-[12rem]">psychology</span>
+</div>
+<h3 class="font-headline text-xl font-bold mb-4">Wisdom of the Day</h3>
+<p class="font-body italic text-lg leading-relaxed mb-6">
+                    "To learn a language is to have one more window from which to look at the world."
+                </p>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container overflow-hidden">
+<img alt="Author" class="w-full h-full object-cover" data-alt="Portrait of an elderly wise woman with silver hair and gentle eyes in a soft focused outdoor setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq_2RuVElc0_obZP7xEE0ZJEUxXHyin1XZ5ztsl9Sx5L8dAb5YN6JT_4sVdyOOKFZMfbZnhYl9vQ2hzapl9vk4PijDtxKzldcO2d64uuh_iAxFx4rIm1NjTJt4ujuRfY6oomzzde-jjnGoViN964arFRq7UyiZXOyMJs4Fy-E5DPeLqLBaOtiBHpUqcMCVfnq0wItgXgFx4PIfgI4-_dmhWdWZdhEPstIENNVYuv_QhCmihswCXaDjZ9e16ZDNYo0xzysRSHTbtMQ"/>
+</div>
+<span class="text-sm font-label opacity-80">— Alice Kaplan</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav for Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#f8faf9]/90 backdrop-blur-xl px-6 py-4 flex justify-around items-center z-50">
+<div class="flex flex-col items-center gap-1 text-[#3b6761]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-label font-bold">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#acb3b2]">
+<span class="material-symbols-outlined">collections_bookmark</span>
+<span class="text-[10px] font-label">Collection</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#acb3b2]">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-[10px] font-label">Progress</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#acb3b2]">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-label">Profile</span>
+</div>
+</nav>
+</body></html>
