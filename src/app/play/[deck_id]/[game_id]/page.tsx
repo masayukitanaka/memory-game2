@@ -2,18 +2,9 @@
 
 import Link from "next/link";
 import { useState, useCallback, useEffect, use } from "react";
+import decksData from "../../../../../data/decks.json";
 
-// --- Mock data (to be replaced with real data fetching) ---
-const MOCK_PAIRS = [
-	{ id: "1", front: "apple", back: "りんご" },
-	{ id: "2", front: "ocean", back: "海" },
-	{ id: "3", front: "mountain", back: "山" },
-	{ id: "4", front: "book", back: "本" },
-	{ id: "5", front: "rain", back: "雨" },
-	{ id: "6", front: "star", back: "星" },
-	{ id: "7", front: "flower", back: "花" },
-	{ id: "8", front: "wind", back: "風" },
-];
+type Pair = { id: string; front: string; back: string };
 
 type Card = {
 	id: string;
@@ -23,6 +14,14 @@ type Card = {
 };
 
 type CardState = "facedown" | "flipped" | "matched";
+
+function parsePairs(flatPairs: string[]): Pair[] {
+	const pairs: Pair[] = [];
+	for (let i = 0; i < flatPairs.length; i += 2) {
+		pairs.push({ id: String(i / 2), front: flatPairs[i], back: flatPairs[i + 1] });
+	}
+	return pairs;
+}
 
 function seededRandom(seed: string): number {
 	let h = 0;
@@ -52,7 +51,7 @@ function shuffle<T>(arr: T[]): T[] {
 	return a;
 }
 
-function buildCards(pairs: typeof MOCK_PAIRS): Card[] {
+function buildCards(pairs: Pair[]): Card[] {
 	const cards: Card[] = [];
 	for (const pair of pairs) {
 		cards.push({ id: `${pair.id}-f`, pairId: pair.id, text: pair.front, side: "front" });
@@ -75,6 +74,9 @@ export default function GamePage({
 }) {
 	const { deck_id } = use(params);
 
+	const deck = decksData.decks.find((d) => d.deck_id === deck_id);
+	const pairs = deck ? parsePairs(deck.pairs) : [];
+
 	const [cards, setCards] = useState<Card[]>([]);
 	const [cardStates, setCardStates] = useState<Record<string, CardState>>({});
 	const [selected, setSelected] = useState<string[]>([]);
@@ -86,12 +88,13 @@ export default function GamePage({
 
 	// Build and shuffle cards on mount (client only) to avoid hydration mismatch
 	useEffect(() => {
-		const built = buildCards(MOCK_PAIRS);
+		if (pairs.length === 0) return;
+		const built = buildCards(pairs);
 		setCards(built);
 		setCardStates(Object.fromEntries(built.map((c) => [c.id, "facedown" as CardState])));
-	}, []);
+	}, [deck_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-	const totalPairs = MOCK_PAIRS.length;
+	const totalPairs = pairs.length;
 	const matchedCount = Object.values(scores).reduce((a, b) => a + b, 0);
 	const isComplete = matchedCount === totalPairs;
 	const currentPlayer = MOCK_PLAYERS[currentPlayerIndex];
@@ -147,6 +150,17 @@ export default function GamePage({
 		},
 		[cards, cardStates, selected, isLocked, currentPlayer, advanceTurn]
 	);
+
+	if (!deck) {
+		return (
+			<div className="min-h-screen flex flex-col items-center justify-center gap-4">
+				<span className="font-body text-on-surface-variant">Deck not found</span>
+				<Link href="/" className="font-body text-sm text-primary hover:text-primary/80">
+					&larr; Back to Games
+				</Link>
+			</div>
+		);
+	}
 
 	if (cards.length === 0) {
 		return (
@@ -253,8 +267,8 @@ export default function GamePage({
 												? "bg-primary-container hover:shadow-[0px_20px_40px_rgba(45,52,51,0.06)] hover:scale-[1.02]"
 												: ""
 										}
-										${state === "flipped" ? "bg-primary-container scale-[1.02] shadow-[0px_20px_40px_rgba(45,52,51,0.06)]" : ""}
-										${state === "matched" ? "bg-secondary-container animate-[cardMatch_0.6s_ease-out]" : ""}
+										${state === "flipped" ? "bg-white scale-[1.02] shadow-[0px_20px_40px_rgba(45,52,51,0.06)]" : ""}
+										${state === "matched" ? "bg-white animate-[cardMatch_0.6s_ease-out]" : ""}
 									`}
 								>
 									{state === "facedown" ? (
