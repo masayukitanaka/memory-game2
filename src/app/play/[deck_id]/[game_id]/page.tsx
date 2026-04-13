@@ -83,6 +83,7 @@ export default function GamePage({
 	const [isLocked, setIsLocked] = useState(false);
 	const [kickTarget, setKickTarget] = useState<Player | null>(null);
 	const [showResetConfirm, setShowResetConfirm] = useState(false);
+	const [showCopied, setShowCopied] = useState(false);
 	const wsRef = useRef<WebSocket | null>(null);
 	const cardsRef = useRef<Card[]>([]);
 
@@ -566,6 +567,30 @@ export default function GamePage({
 					<div className="ml-auto text-xs font-medium text-on-surface-variant tracking-wide">
 						{matchedCount} / {totalPairs} pairs
 					</div>
+				</div>
+
+				{/* Share prompt */}
+				<div className="mt-4 flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary-container/40">
+					<button
+						onClick={() => {
+							navigator.clipboard.writeText(window.location.href).then(() => {
+								setShowCopied(true);
+								setTimeout(() => setShowCopied(false), 2000);
+							}).catch(() => {});
+						}}
+						className="text-lg cursor-pointer hover:scale-110 transition-transform relative"
+						title="Copy URL"
+					>
+						🔗
+						{showCopied && (
+							<span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-on-surface text-surface text-xs font-semibold px-3 py-1 rounded-full animate-[fadeIn_0.2s_ease-out]">
+								Copied!
+							</span>
+						)}
+					</button>
+					<p className="font-body text-sm font-medium text-primary">
+						Share this URL to invite others to play!
+					</p>
 				</div>
 
 				{/* Progress bar */}
