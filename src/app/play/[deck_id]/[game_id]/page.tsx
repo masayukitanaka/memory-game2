@@ -2,9 +2,6 @@
 
 import Link from "next/link";
 import { useState, useCallback, useEffect, useRef, use } from "react";
-import decksData from "../../../../../data/decks.json";
-
-type Pair = { id: string; front: string; back: string };
 
 type Card = {
 	id: string;
@@ -13,15 +10,31 @@ type Card = {
 	side: "front" | "back";
 };
 
+// DB card structure from games.cards
+type DbCard = {
+	id: number;
+	content: string;
+	pairId: number;
+	side: "front" | "back";
+	position: number;
+	isMatched: boolean;
+};
+
 type CardState = "facedown" | "flipped" | "matched";
 
-function parsePairs(flatPairs: string[]): Pair[] {
-	const pairs: Pair[] = [];
-	for (let i = 0; i < flatPairs.length; i += 2) {
-		pairs.push({ id: String(i / 2), front: flatPairs[i], back: flatPairs[i + 1] });
-	}
-	return pairs;
-}
+type Player = {
+	sessionId: string;
+	playerName: string;
+	score: number;
+};
+
+// --- WebSocket message types ---
+type WsPlayerJoined = { type: "player-joined"; player: Player };
+type WsCardFlipped = { type: "card-flipped"; cardId: string; sessionId: string };
+type WsCardsMatched = { type: "cards-matched"; cardIds: [string, string]; scorerSessionId: string };
+type WsCardsUnmatched = { type: "cards-unmatched"; cardIds: [string, string]; nextPlayerIndex: number };
+type WsPlayerDisconnected = { type: "player-disconnected" };
+type WsMessage = WsPlayerJoined | WsCardFlipped | WsCardsMatched | WsCardsUnmatched | WsPlayerDisconnected;
 
 function seededRandom(seed: string): number {
 	let h = 0;
@@ -36,36 +49,13 @@ function getCardTransform(cardId: string): { rotate: number; x: number; y: numbe
 	const r2 = seededRandom(cardId + "x");
 	const r3 = seededRandom(cardId + "y");
 	return {
-		rotate: (r1 - 0.5) * 6,  // -3 to +3 degrees
-		x: (r2 - 0.5) * 6,       // -3 to +3 px
-		y: (r3 - 0.5) * 6,       // -3 to +3 px
+		rotate: (r1 - 0.5) * 6,
+		x: (r2 - 0.5) * 6,
+		y: (r3 - 0.5) * 6,
 	};
 }
 
-function shuffle<T>(arr: T[]): T[] {
-	const a = [...arr];
-	for (let i = a.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[a[i], a[j]] = [a[j], a[i]];
-	}
-	return a;
-}
-
-function buildCards(pairs: Pair[]): Card[] {
-	const cards: Card[] = [];
-	for (const pair of pairs) {
-		cards.push({ id: `${pair.id}-f`, pairId: pair.id, text: pair.front, side: "front" });
-		cards.push({ id: `${pair.id}-b`, pairId: pair.id, text: pair.back, side: "back" });
-	}
-	return shuffle(cards);
-}
-
-// --- Mock players ---
 const DEFAULT_PLAYER_NAME = "no name";
-const OTHER_PLAYERS = [
-	{ id: "p2", name: "Hana" },
-	{ id: "p3", name: "Kai" },
-];
 
 export default function GamePage({
 	params,
@@ -74,41 +64,101 @@ export default function GamePage({
 }) {
 	const { deck_id, game_id } = use(params);
 
-	const deck = decksData.decks.find((d) => d.deck_id === deck_id);
-	const pairs = deck ? parsePairs(deck.pairs) : [];
-
+	const [totalPairsCount, setTotalPairsCount] = useState(0);
 	const [myName, setMyName] = useState(DEFAULT_PLAYER_NAME);
+	const [mySessionId, setMySessionId] = useState<string | null>(null);
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [editNameValue, setEditNameValue] = useState("");
 	const editInputRef = useRef<HTMLInputElement | null>(null);
 
-	const players = [{ id: "p1", name: myName }, ...OTHER_PLAYERS];
+	const [players, setPlayers] = useState<Player[]>([]);
 
 	const [cards, setCards] = useState<Card[]>([]);
 	const [cardStates, setCardStates] = useState<Record<string, CardState>>({});
-	const [selected, setSelected] = useState<string[]>([]);
-	const [scores, setScores] = useState<Record<string, number>>(() =>
-		Object.fromEntries([{ id: "p1" }, ...OTHER_PLAYERS].map((p) => [p.id, 0]))
-	);
+	const [flippedCards, setFlippedCards] = useState<string[]>([]);
+	const [scores, setScores] = useState<Record<string, number>>({});
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [isLocked, setIsLocked] = useState(false);
-	const [showTestDialog, setShowTestDialog] = useState(false);
 	const wsRef = useRef<WebSocket | null>(null);
+	const cardsRef = useRef<Card[]>([]);
 
-	// WebSocket connection
+	// Keep cardsRef in sync
+	useEffect(() => { cardsRef.current = cards; }, [cards]);
+
+	// --- WebSocket connection and message handler ---
 	useEffect(() => {
 		const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
 		const url = `${proto}//${window.location.host}/api/ws/${game_id}`;
 		const ws = new WebSocket(url);
 
 		ws.addEventListener("message", (event) => {
+			let msg: WsMessage;
 			try {
-				const data = JSON.parse(event.data);
-				if (data.type === "show-dialog") {
-					setShowTestDialog(true);
-				}
+				msg = JSON.parse(event.data) as WsMessage;
 			} catch {
-				// ignore malformed messages
+				return;
+			}
+
+			switch (msg.type) {
+				case "player-joined": {
+					setPlayers((prev) => {
+						const exists = prev.some((p) => p.sessionId === msg.player.sessionId);
+						if (exists) {
+							return prev.map((p) =>
+								p.sessionId === msg.player.sessionId
+									? { ...p, playerName: msg.player.playerName }
+									: p
+							);
+						}
+						return [...prev, msg.player];
+					});
+					setScores((prev) => ({
+						...prev,
+						[msg.player.sessionId]: prev[msg.player.sessionId] ?? 0,
+					}));
+					break;
+				}
+				case "card-flipped": {
+					setCardStates((prev) => ({ ...prev, [msg.cardId]: "flipped" }));
+					setFlippedCards((prev) => [...prev, msg.cardId]);
+					break;
+				}
+				case "cards-matched": {
+					const [id1, id2] = msg.cardIds;
+					setTimeout(() => {
+						setCardStates((prev) => ({
+							...prev,
+							[id1]: "matched",
+							[id2]: "matched",
+						}));
+						setScores((prev) => ({
+							...prev,
+							[msg.scorerSessionId]: (prev[msg.scorerSessionId] ?? 0) + 1,
+						}));
+						setFlippedCards([]);
+						setIsLocked(false);
+					}, 500);
+					break;
+				}
+				case "cards-unmatched": {
+					const [uid1, uid2] = msg.cardIds;
+					setIsLocked(true);
+					setTimeout(() => {
+						setCardStates((prev) => ({
+							...prev,
+							[uid1]: "facedown",
+							[uid2]: "facedown",
+						}));
+						setFlippedCards([]);
+						setCurrentPlayerIndex(msg.nextPlayerIndex);
+						setIsLocked(false);
+					}, 1000);
+					break;
+				}
+				case "player-disconnected": {
+					// Could refresh player list from API if needed
+					break;
+				}
 			}
 		});
 
@@ -119,37 +169,63 @@ export default function GamePage({
 		};
 	}, [game_id]);
 
-	// Build and shuffle cards on mount (client only) to avoid hydration mismatch
+	// Load game data (cards) from DB
 	useEffect(() => {
-		if (pairs.length === 0) return;
-		const built = buildCards(pairs);
-		setCards(built);
-		setCardStates(Object.fromEntries(built.map((c) => [c.id, "facedown" as CardState])));
-	}, [deck_id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-	const handleTestWin = useCallback(() => {
-		const ws = wsRef.current;
-		if (ws && ws.readyState === WebSocket.OPEN) {
-			ws.send(JSON.stringify({ type: "test-win" }));
-		}
-	}, []);
-
-	// Load player name: localStorage first (instant), then session API
-	useEffect(() => {
-		const saved = localStorage.getItem("playerName");
-		if (saved) setMyName(saved);
-
-		fetch("/api/session", { credentials: "include" })
+		fetch(`/api/games/${game_id}`)
 			.then((res) => (res.ok ? res.json() : null))
 			.then((raw) => {
-				const json = raw as { data?: { playerName?: string } } | null;
-				if (json?.data?.playerName) {
-					setMyName(json.data.playerName);
-					localStorage.setItem("playerName", json.data.playerName);
+				const game = raw as { cards?: DbCard[] } | null;
+				if (!game?.cards) return;
+				// Sort by position to ensure consistent order across clients
+				const sorted = [...game.cards].sort((a, b) => a.position - b.position);
+				const mapped: Card[] = sorted.map((c) => ({
+					id: String(c.id),
+					pairId: String(c.pairId),
+					text: c.content,
+					side: c.side,
+				}));
+				setCards(mapped);
+				setTotalPairsCount(mapped.length / 2);
+				setCardStates(Object.fromEntries(
+					mapped.map((c) => [c.id, (game.cards!.find((dc) => dc.id === Number(c.id))?.isMatched ? "matched" : "facedown") as CardState])
+				));
+			})
+			.catch(() => {});
+	}, [game_id]);
+
+	// Load player name and join game
+	useEffect(() => {
+		const saved = localStorage.getItem("playerName");
+		const name = saved || DEFAULT_PLAYER_NAME;
+		if (saved) setMyName(saved);
+
+		fetch(`/api/games/${game_id}/players`, {
+			method: "POST",
+			credentials: "include",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ playerName: name }),
+		})
+			.then((res) => (res.ok ? res.json() : null))
+			.then((raw) => {
+				const json = raw as { players?: Player[]; sessionId?: string } | null;
+				if (json?.players) {
+					setPlayers(json.players);
+					setScores(Object.fromEntries(json.players.map((p) => [p.sessionId, p.score])));
+				}
+				if (json?.sessionId) {
+					setMySessionId(json.sessionId);
+					// Notify other players via WebSocket
+					const ws = wsRef.current;
+					if (ws && ws.readyState === WebSocket.OPEN) {
+						ws.send(JSON.stringify({
+							type: "player-joined",
+							player: { sessionId: json.sessionId, playerName: name, score: 0 },
+						}));
+					}
 				}
 			})
 			.catch(() => {});
-	}, []);
+	}, [game_id]);
 
 	// Focus the edit input when editing starts
 	useEffect(() => {
@@ -170,85 +246,80 @@ export default function GamePage({
 		setMyName(newName);
 		setIsEditingName(false);
 		localStorage.setItem("playerName", newName);
+		// Update session
 		fetch("/api/session", {
 			method: "PATCH",
 			credentials: "include",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ playerName: newName }),
 		}).catch(() => {});
-	}, [editNameValue]);
+		// Update game players in DB + notify via WS
+		fetch(`/api/games/${game_id}/players`, {
+			method: "POST",
+			credentials: "include",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ playerName: newName }),
+		}).catch(() => {});
+		if (mySessionId) {
+			const ws = wsRef.current;
+			if (ws && ws.readyState === WebSocket.OPEN) {
+				ws.send(JSON.stringify({
+					type: "player-joined",
+					player: { sessionId: mySessionId, playerName: newName, score: scores[mySessionId] ?? 0 },
+				}));
+			}
+		}
+	}, [editNameValue, game_id, mySessionId, scores]);
 
 	const cancelEditing = useCallback(() => {
 		setIsEditingName(false);
 	}, []);
 
-	const totalPairs = pairs.length;
+	const totalPairs = totalPairsCount;
 	const matchedCount = Object.values(scores).reduce((a, b) => a + b, 0);
-	const isComplete = matchedCount === totalPairs;
+	const isComplete = totalPairs > 0 && matchedCount === totalPairs;
 	const currentPlayer = players[currentPlayerIndex];
 
-	const advanceTurn = useCallback(() => {
-		setCurrentPlayerIndex((i) => (i + 1) % players.length);
-	}, [players.length]);
-
+	// --- Card click: send via WebSocket, don't mutate local state ---
 	const handleCardClick = useCallback(
 		(cardId: string) => {
 			if (isLocked) return;
-			if (cardStates[cardId] !== "facedown") return;
-			if (selected.length >= 2) return;
+			if (!mySessionId) return;
+			// Only allow current player to click
+			if (currentPlayer?.sessionId !== mySessionId) return;
 
-			const newSelected = [...selected, cardId];
-			setCardStates((prev) => ({ ...prev, [cardId]: "flipped" }));
-			setSelected(newSelected);
+			const ws = wsRef.current;
+			if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-			if (newSelected.length === 2) {
-				const [firstId, secondId] = newSelected;
-				const firstCard = cards.find((c) => c.id === firstId)!;
-				const secondCard = cards.find((c) => c.id === secondId)!;
+			// Send flip event
+			ws.send(JSON.stringify({ type: "card-flipped", cardId, sessionId: mySessionId }));
 
-				if (firstCard.pairId === secondCard.pairId) {
-					// Match — current player scores, keeps turn
-					setTimeout(() => {
-						setCardStates((prev) => ({
-							...prev,
-							[firstId]: "matched",
-							[secondId]: "matched",
-						}));
-						setScores((prev) => ({
-							...prev,
-							[currentPlayer.id]: prev[currentPlayer.id] + 1,
-						}));
-						setSelected([]);
-					}, 500);
+			// Check if this is the second flip
+			const newFlipped = [...flippedCards, cardId];
+			if (newFlipped.length === 2) {
+				const [firstId, secondId] = newFlipped;
+				const allCards = cardsRef.current;
+				const firstCard = allCards.find((c) => c.id === firstId);
+				const secondCard = allCards.find((c) => c.id === secondId);
+
+				if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+					ws.send(JSON.stringify({
+						type: "cards-matched",
+						cardIds: [firstId, secondId],
+						scorerSessionId: mySessionId,
+					}));
 				} else {
-					// No match — flip back, next player's turn
-					setIsLocked(true);
-					setTimeout(() => {
-						setCardStates((prev) => ({
-							...prev,
-							[firstId]: "facedown",
-							[secondId]: "facedown",
-						}));
-						setSelected([]);
-						setIsLocked(false);
-						advanceTurn();
-					}, 1000);
+					const nextIdx = (currentPlayerIndex + 1) % players.length;
+					ws.send(JSON.stringify({
+						type: "cards-unmatched",
+						cardIds: [firstId, secondId],
+						nextPlayerIndex: nextIdx,
+					}));
 				}
 			}
 		},
-		[cards, cardStates, selected, isLocked, currentPlayer, advanceTurn]
+		[isLocked, mySessionId, currentPlayer, flippedCards, currentPlayerIndex, players.length]
 	);
-
-	if (!deck) {
-		return (
-			<div className="min-h-screen flex flex-col items-center justify-center gap-4">
-				<span className="font-body text-on-surface-variant">Deck not found</span>
-				<Link href="/" className="font-body text-sm text-primary hover:text-primary/80">
-					&larr; Back to Games
-				</Link>
-			</div>
-		);
-	}
 
 	if (cards.length === 0) {
 		return (
@@ -272,12 +343,7 @@ export default function GamePage({
 					<span className="font-display text-base font-bold tracking-tight text-on-surface capitalize">
 						{deck_id.replace(/-/g, " ")}
 					</span>
-					<button
-						onClick={handleTestWin}
-						className="font-body text-xs font-semibold px-4 py-2 rounded-full bg-primary-container text-primary hover:bg-primary hover:text-on-primary transition-colors cursor-pointer"
-					>
-						Test Win
-					</button>
+					<div className="w-16" />
 				</div>
 			</nav>
 
@@ -285,11 +351,11 @@ export default function GamePage({
 			<div className="max-w-4xl mx-auto w-full px-6 sm:px-10 pt-6 pb-2">
 				<div className="flex items-center gap-3 sm:gap-4 flex-wrap">
 					{players.map((player) => {
-						const isActive = player.id === currentPlayer.id;
-						const isMe = player.id === "p1";
+						const isActive = player.sessionId === currentPlayer?.sessionId;
+						const isMe = player.sessionId === mySessionId;
 						return (
 							<div
-								key={player.id}
+								key={player.sessionId}
 								className={`
 									flex items-center gap-3 px-5 py-3 rounded-full transition-all duration-300
 									ease-[cubic-bezier(0.34,1.56,0.64,1)]
@@ -331,13 +397,13 @@ export default function GamePage({
 													onClick={startEditingName}
 													className="underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer"
 												>
-													{player.name}
+													{player.playerName}
 												</button>
 												<span className="opacity-60"> (You)</span>
 											</span>
 										)
 									) : (
-										player.name
+										player.playerName
 									)}
 								</span>
 								<span
@@ -345,7 +411,7 @@ export default function GamePage({
 										isActive ? "text-on-surface" : "text-on-surface-variant"
 									}`}
 								>
-									{scores[player.id]}
+									{scores[player.sessionId] ?? 0}
 								</span>
 							</div>
 						);
@@ -420,47 +486,27 @@ export default function GamePage({
 				</div>
 			</div>
 
-			{/* Test Win dialog */}
-			{showTestDialog && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/70 backdrop-blur-[24px]">
-					<div className="bg-surface-lowest rounded-[3rem] p-12 sm:p-16 max-w-sm w-full mx-6 shadow-[0px_20px_40px_rgba(45,52,51,0.06)] text-center">
-						<h2 className="font-display text-2xl sm:text-3xl font-extrabold text-on-surface">
-							Test Win!
-						</h2>
-						<p className="mt-4 font-body text-sm text-on-surface-variant">
-							This message was broadcast to all connected players via WebSocket.
-						</p>
-						<button
-							onClick={() => setShowTestDialog(false)}
-							className="mt-8 inline-flex items-center justify-center h-12 px-8 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-body text-sm font-semibold tracking-wide transition-all duration-200 hover:shadow-[0px_20px_40px_rgba(45,52,51,0.10)] hover:scale-[1.02] cursor-pointer"
-						>
-							OK
-						</button>
-					</div>
-				</div>
-			)}
-
 			{/* Completion overlay */}
 			{isComplete && (() => {
 				const maxScore = Math.max(...Object.values(scores));
-				const winners = players.filter((p) => scores[p.id] === maxScore);
+				const winners = players.filter((p) => scores[p.sessionId] === maxScore);
 				const isTie = winners.length > 1;
 
 				return (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/70 backdrop-blur-[24px]">
 						<div className="bg-surface-lowest rounded-[3rem] p-12 sm:p-16 max-w-md w-full mx-6 shadow-[0px_20px_40px_rgba(45,52,51,0.06)] text-center">
 							<h2 className="font-display text-[2.5rem] sm:text-[3.5rem] font-extrabold text-on-surface leading-none">
-								{isTie ? "Draw" : `${winners[0].name} Wins`}
+								{isTie ? "Draw" : `${winners[0].playerName} Wins`}
 							</h2>
 
 							{/* Final scores */}
 							<div className="mt-8 flex flex-col gap-2">
 								{players
 									.slice()
-									.sort((a, b) => scores[b.id] - scores[a.id])
+									.sort((a, b) => (scores[b.sessionId] ?? 0) - (scores[a.sessionId] ?? 0))
 									.map((player, i) => (
 										<div
-											key={player.id}
+											key={player.sessionId}
 											className={`flex items-center justify-between px-5 py-3 rounded-full ${
 												i === 0 ? "bg-primary-container" : "bg-surface-low"
 											}`}
@@ -470,14 +516,14 @@ export default function GamePage({
 													i === 0 ? "text-primary" : "text-on-surface-variant"
 												}`}
 											>
-												{player.name}
+												{player.playerName}
 											</span>
 											<span
 												className={`font-display text-lg font-bold ${
 													i === 0 ? "text-on-surface" : "text-on-surface-variant"
 												}`}
 											>
-												{scores[player.id]} pairs
+												{scores[player.sessionId] ?? 0} pairs
 											</span>
 										</div>
 									))}

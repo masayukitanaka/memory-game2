@@ -57,9 +57,10 @@ CREATE INDEX idx_decks_updated_at ON memory_game.decks (updated_at);
 -- バックエンドからのみアクセス許可
 ALTER TABLE memory_game.decks ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "service role only"
+CREATE POLICY "allow read on decks"
   ON memory_game.decks
-  USING (auth.role() = 'service_role');
+  FOR SELECT
+  USING (true);
 
 -- 初期データの挿入
 INSERT INTO memory_game.decks (deck_id, description, number_of_cards, pairs) VALUES
@@ -134,7 +135,9 @@ CREATE INDEX idx_games_created_at ON memory_game.games (created_at);
 -- バックエンドからのみアクセス許可
 ALTER TABLE memory_game.games ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "service role only"
+CREATE POLICY "allow all on games"
   ON memory_game.games
-  USING (auth.role() = 'service_role');
-
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+  

@@ -1,5 +1,12 @@
 import { DurableObject } from "cloudflare:workers";
 
+const GAME_MESSAGE_TYPES = [
+	"player-joined",
+	"card-flipped",
+	"cards-matched",
+	"cards-unmatched",
+];
+
 export class GameRoom extends DurableObject {
 	async fetch(request: Request): Promise<Response> {
 		if (request.headers.get("Upgrade") !== "websocket") {
@@ -22,15 +29,22 @@ export class GameRoom extends DurableObject {
 			return;
 		}
 
-		if (data.type === "test-win") {
-			const broadcast = JSON.stringify({ type: "show-dialog" });
+		// Broadcast game events to ALL connected clients (including sender)
+		if (GAME_MESSAGE_TYPES.includes(data.type)) {
 			for (const socket of this.ctx.getWebSockets()) {
-				socket.send(broadcast);
+				socket.send(raw);
 			}
 		}
 	}
 
 	async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
+		// Broadcast disconnect to remaining clients
+		const msg = JSON.stringify({ type: "player-disconnected" });
+		for (const socket of this.ctx.getWebSockets()) {
+			if (socket !== ws) {
+				socket.send(msg);
+			}
+		}
 		ws.close(code, reason);
 	}
 
