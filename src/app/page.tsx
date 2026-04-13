@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
@@ -63,9 +64,10 @@ export default function Home() {
 		<div className="min-h-screen">
 			{/* Navigation - Glassmorphism */}
 			<nav className="sticky top-0 z-50 bg-surface/70 backdrop-blur-[24px]">
-				<div className="max-w-6xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between">
+				<div className="max-w-6xl mx-auto px-6 sm:px-10 py-5 flex items-center gap-3">
+					<Image src="/logo.png" alt="Memory Game" width={36} height={36} />
 					<span className="font-display text-xl font-bold tracking-tight text-on-surface">
-						Tactile Mind
+						Memory Game
 					</span>
 				</div>
 			</nav>

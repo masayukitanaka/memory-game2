@@ -5,6 +5,8 @@ const GAME_MESSAGE_TYPES = [
 	"card-flipped",
 	"cards-matched",
 	"cards-unmatched",
+	"game-reset",
+	"player-removed",
 ];
 
 export class GameRoom extends DurableObject {

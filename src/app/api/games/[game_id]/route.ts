@@ -27,6 +27,7 @@ type PatchBody = {
 	matchedCardIds?: number[];
 	scorerSessionId?: string;
 	currentPlayerIndex?: number;
+	reset?: boolean;
 };
 
 export async function PATCH(
@@ -50,38 +51,56 @@ export async function PATCH(
 		return NextResponse.json({ error: "Game not found" }, { status: 404 });
 	}
 
-	type DbCard = { id: number; isMatched: boolean; [key: string]: unknown };
+	type DbCard = { id: number; isMatched: boolean; position: number; [key: string]: unknown };
 	type DbPlayer = { sessionId: string; score: number; [key: string]: unknown };
 
 	const cards = game.cards as DbCard[];
 	const players = game.players as DbPlayer[];
 	let currentPlayerIndex = game.current_player_index as number;
+	let status: string;
 
-	// Mark matched cards
-	if (body.matchedCardIds) {
+	if (body.reset) {
+		// Reset: all cards facedown, all scores to 0, turn back to 0
 		for (const card of cards) {
-			if (body.matchedCardIds.includes(card.id)) {
-				card.isMatched = true;
+			card.isMatched = false;
+		}
+		// Shuffle card positions
+		for (let i = cards.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			const tmpPos = cards[i].position;
+			cards[i].position = cards[j].position;
+			cards[j].position = tmpPos;
+		}
+		players.length = 0;
+		currentPlayerIndex = 0;
+		status = "active";
+	} else {
+		// Mark matched cards
+		if (body.matchedCardIds) {
+			for (const card of cards) {
+				if (body.matchedCardIds.includes(card.id)) {
+					card.isMatched = true;
+				}
 			}
 		}
-	}
 
-	// Update scorer's score
-	if (body.scorerSessionId) {
-		const scorer = players.find((p) => p.sessionId === body.scorerSessionId);
-		if (scorer) {
-			scorer.score += 1;
+		// Update scorer's score
+		if (body.scorerSessionId) {
+			const scorer = players.find((p) => p.sessionId === body.scorerSessionId);
+			if (scorer) {
+				scorer.score += 1;
+			}
 		}
-	}
 
-	// Update current player index
-	if (body.currentPlayerIndex !== undefined) {
-		currentPlayerIndex = body.currentPlayerIndex;
-	}
+		// Update current player index
+		if (body.currentPlayerIndex !== undefined) {
+			currentPlayerIndex = body.currentPlayerIndex;
+		}
 
-	// Check if game is complete
-	const allMatched = cards.every((c) => c.isMatched);
-	const status = allMatched ? "completed" : "active";
+		// Check if game is complete
+		const allMatched = cards.every((c) => c.isMatched);
+		status = allMatched ? "completed" : "active";
+	}
 
 	const { error: updateError } = await supabase
 		// @ts-ignore

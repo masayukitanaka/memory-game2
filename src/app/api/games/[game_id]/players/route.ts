@@ -79,3 +79,69 @@ export async function POST(
 
 	return NextResponse.json({ players, sessionId });
 }
+
+/**
+ * DELETE /api/games/[game_id]/players — remove a player
+ * Body: { sessionId: string }
+ */
+export async function DELETE(
+	request: NextRequest,
+	{ params }: { params: Promise<{ game_id: string }> },
+) {
+	const { game_id } = await params;
+
+	const body = (await request.json()) as { sessionId?: string };
+	if (!body.sessionId) {
+		return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
+	}
+
+	const supabase = getSupabase();
+
+	const { data: game, error: fetchError } = await supabase
+		// @ts-ignore
+		.schema("memory_game")
+		.from("games")
+		.select("players, current_player_index")
+		.eq("id", game_id)
+		.single();
+
+	if (fetchError || !game) {
+		return NextResponse.json({ error: "Game not found" }, { status: 404 });
+	}
+
+	const players = (game.players as Player[]) || [];
+	const removedIndex = players.findIndex((p) => p.sessionId === body.sessionId);
+	if (removedIndex === -1) {
+		return NextResponse.json({ error: "Player not found" }, { status: 404 });
+	}
+
+	players.splice(removedIndex, 1);
+
+	// Adjust current_player_index if needed
+	let currentPlayerIndex = game.current_player_index as number;
+	if (players.length === 0) {
+		currentPlayerIndex = 0;
+	} else if (removedIndex < currentPlayerIndex) {
+		currentPlayerIndex--;
+	} else if (currentPlayerIndex >= players.length) {
+		currentPlayerIndex = 0;
+	}
+
+	const { error: updateError } = await supabase
+		// @ts-ignore
+		.schema("memory_game")
+		.from("games")
+		.update({
+			players,
+			current_player_index: currentPlayerIndex,
+			updated_at: new Date().toISOString(),
+		})
+		.eq("id", game_id);
+
+	if (updateError) {
+		console.error("Failed to remove player:", updateError.message);
+		return NextResponse.json({ error: "Failed to remove player" }, { status: 500 });
+	}
+
+	return NextResponse.json({ players, currentPlayerIndex });
+}

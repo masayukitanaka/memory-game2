@@ -33,8 +33,10 @@ type WsPlayerJoined = { type: "player-joined"; player: Player };
 type WsCardFlipped = { type: "card-flipped"; cardId: string; sessionId: string };
 type WsCardsMatched = { type: "cards-matched"; cardIds: [string, string]; scorerSessionId: string };
 type WsCardsUnmatched = { type: "cards-unmatched"; cardIds: [string, string]; nextPlayerIndex: number };
+type WsGameReset = { type: "game-reset" };
+type WsPlayerRemoved = { type: "player-removed"; sessionId: string; players: Player[]; currentPlayerIndex: number };
 type WsPlayerDisconnected = { type: "player-disconnected" };
-type WsMessage = WsPlayerJoined | WsCardFlipped | WsCardsMatched | WsCardsUnmatched | WsPlayerDisconnected;
+type WsMessage = WsPlayerJoined | WsCardFlipped | WsCardsMatched | WsCardsUnmatched | WsGameReset | WsPlayerRemoved | WsPlayerDisconnected;
 
 function seededRandom(seed: string): number {
 	let h = 0;
@@ -79,6 +81,8 @@ export default function GamePage({
 	const [scores, setScores] = useState<Record<string, number>>({});
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [isLocked, setIsLocked] = useState(false);
+	const [kickTarget, setKickTarget] = useState<Player | null>(null);
+	const [showResetConfirm, setShowResetConfirm] = useState(false);
 	const wsRef = useRef<WebSocket | null>(null);
 	const cardsRef = useRef<Card[]>([]);
 
@@ -172,8 +176,23 @@ export default function GamePage({
 					}).catch(() => {});
 					break;
 				}
+				case "game-reset": {
+					window.location.reload();
+					break;
+				}
+				case "player-removed": {
+					setPlayers(msg.players);
+					setCurrentPlayerIndex(msg.currentPlayerIndex);
+					setScores((prev) => {
+						const next: Record<string, number> = {};
+						for (const p of msg.players) {
+							next[p.sessionId] = prev[p.sessionId] ?? 0;
+						}
+						return next;
+					});
+					break;
+				}
 				case "player-disconnected": {
-					// Could refresh player list from API if needed
 					break;
 				}
 			}
@@ -256,6 +275,65 @@ export default function GamePage({
 			.catch(() => {});
 	}, [game_id]);
 
+	// Sync state from DB after 2 seconds to catch late joiners
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			fetch(`/api/games/${game_id}`)
+				.then((res) => (res.ok ? res.json() : null))
+				.then((raw) => {
+					const game = raw as {
+						cards?: DbCard[];
+						players?: Player[];
+						current_player_index?: number;
+					} | null;
+					if (!game) return;
+					// Sync players
+					if (game.players) {
+						setPlayers((prev) => {
+							const prevIds = prev.map((p) => p.sessionId).sort().join(",");
+							const newIds = game.players!.map((p) => p.sessionId).sort().join(",");
+							if (prevIds !== newIds) return game.players!;
+							// Check name changes
+							const changed = game.players!.some((p) => {
+								const existing = prev.find((e) => e.sessionId === p.sessionId);
+								return existing && existing.playerName !== p.playerName;
+							});
+							return changed ? game.players! : prev;
+						});
+						setScores((prev) => {
+							const next = Object.fromEntries(game.players!.map((p) => [p.sessionId, p.score]));
+							const changed = Object.keys(next).length !== Object.keys(prev).length ||
+								Object.entries(next).some(([k, v]) => prev[k] !== v);
+							return changed ? next : prev;
+						});
+					}
+					if (game.current_player_index !== undefined) {
+						setCurrentPlayerIndex((prev) =>
+							prev !== game.current_player_index ? game.current_player_index! : prev
+						);
+					}
+					// Sync card states
+					if (game.cards) {
+						setCardStates((prev) => {
+							let changed = false;
+							const next = { ...prev };
+							for (const dc of game.cards!) {
+								const id = String(dc.id);
+								const expected: CardState = dc.isMatched ? "matched" : prev[id] === "flipped" ? "flipped" : "facedown";
+								if (next[id] !== expected) {
+									next[id] = expected;
+									changed = true;
+								}
+							}
+							return changed ? next : prev;
+						});
+					}
+				})
+				.catch(() => {});
+		}, 2000);
+		return () => clearTimeout(timer);
+	}, [game_id]);
+
 	// Focus the edit input when editing starts
 	useEffect(() => {
 		if (isEditingName) {
@@ -303,6 +381,31 @@ export default function GamePage({
 	const cancelEditing = useCallback(() => {
 		setIsEditingName(false);
 	}, []);
+
+	const handleKickPlayer = useCallback(async () => {
+		if (!kickTarget) return;
+		const targetSessionId = kickTarget.sessionId;
+		setKickTarget(null);
+
+		const res = await fetch(`/api/games/${game_id}/players`, {
+			method: "DELETE",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ sessionId: targetSessionId }),
+		}).catch(() => null);
+
+		if (res?.ok) {
+			const data = (await res.json()) as { players: Player[]; currentPlayerIndex: number };
+			const ws = wsRef.current;
+			if (ws && ws.readyState === WebSocket.OPEN) {
+				ws.send(JSON.stringify({
+					type: "player-removed",
+					sessionId: targetSessionId,
+					players: data.players,
+					currentPlayerIndex: data.currentPlayerIndex,
+				}));
+			}
+		}
+	}, [kickTarget, game_id]);
 
 	const totalPairs = totalPairsCount;
 	const matchedCount = Object.values(scores).reduce((a, b) => a + b, 0);
@@ -372,7 +475,12 @@ export default function GamePage({
 					<span className="font-display text-base font-bold tracking-tight text-on-surface capitalize">
 						{deck_id.replace(/-/g, " ")}
 					</span>
-					<div className="w-16" />
+					<button
+						onClick={() => setShowResetConfirm(true)}
+						className="font-body text-xs font-semibold px-4 py-2 rounded-full bg-surface-low text-on-surface-variant hover:bg-on-surface/10 transition-colors cursor-pointer"
+					>
+						Reset
+					</button>
 				</div>
 			</nav>
 
@@ -442,6 +550,15 @@ export default function GamePage({
 								>
 									{scores[player.sessionId] ?? 0}
 								</span>
+								{!isMe && (
+									<button
+										onClick={() => setKickTarget(player)}
+										className="ml-1 w-5 h-5 flex items-center justify-center rounded-full text-on-surface-variant/50 hover:text-on-surface hover:bg-on-surface/10 transition-colors cursor-pointer text-xs leading-none"
+										title={`Remove ${player.playerName}`}
+									>
+										&times;
+									</button>
+								)}
 							</div>
 						);
 					})}
@@ -515,6 +632,78 @@ export default function GamePage({
 				</div>
 			</div>
 
+			{/* Reset confirmation dialog */}
+			{showResetConfirm && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/70 backdrop-blur-[24px]">
+					<div className="bg-surface-lowest rounded-[3rem] p-12 sm:p-16 max-w-sm w-full mx-6 shadow-[0px_20px_40px_rgba(45,52,51,0.06)] text-center">
+						<h2 className="font-display text-2xl font-extrabold text-on-surface">
+							Reset Game
+						</h2>
+						<p className="mt-4 font-body text-sm text-on-surface-variant">
+							Reset all cards, scores, and players? Everyone will need to rejoin.
+						</p>
+						<div className="mt-10 flex flex-col gap-3">
+							<button
+								onClick={() => {
+									setShowResetConfirm(false);
+									fetch(`/api/games/${game_id}`, {
+										method: "PATCH",
+										headers: { "Content-Type": "application/json" },
+										body: JSON.stringify({ reset: true }),
+									})
+										.then(() => {
+											const ws = wsRef.current;
+											if (ws && ws.readyState === WebSocket.OPEN) {
+												ws.send(JSON.stringify({ type: "game-reset" }));
+											}
+										})
+										.catch(() => {});
+								}}
+								className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[#ba1a1a] text-white font-body text-sm font-semibold tracking-wide transition-all duration-200 hover:bg-[#93000a] hover:scale-[1.02] cursor-pointer"
+							>
+								Reset
+							</button>
+							<button
+								onClick={() => setShowResetConfirm(false)}
+								className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-transparent text-on-surface-variant font-body text-sm font-semibold tracking-wide transition-colors hover:bg-surface-high cursor-pointer"
+								style={{ boxShadow: "inset 0 0 0 1.5px rgba(172, 179, 178, 0.15)" }}
+							>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Kick confirmation dialog */}
+			{kickTarget && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/70 backdrop-blur-[24px]">
+					<div className="bg-surface-lowest rounded-[3rem] p-12 sm:p-16 max-w-sm w-full mx-6 shadow-[0px_20px_40px_rgba(45,52,51,0.06)] text-center">
+						<h2 className="font-display text-2xl font-extrabold text-on-surface">
+							Remove Player
+						</h2>
+						<p className="mt-4 font-body text-sm text-on-surface-variant">
+							Remove <span className="font-semibold text-on-surface">{kickTarget.playerName}</span> from this game?
+						</p>
+						<div className="mt-10 flex flex-col gap-3">
+							<button
+								onClick={handleKickPlayer}
+								className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[#ba1a1a] text-white font-body text-sm font-semibold tracking-wide transition-all duration-200 hover:bg-[#93000a] hover:scale-[1.02] cursor-pointer"
+							>
+								Remove
+							</button>
+							<button
+								onClick={() => setKickTarget(null)}
+								className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-transparent text-on-surface-variant font-body text-sm font-semibold tracking-wide transition-colors hover:bg-surface-high cursor-pointer"
+								style={{ boxShadow: "inset 0 0 0 1.5px rgba(172, 179, 178, 0.15)" }}
+							>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* Completion overlay */}
 			{isComplete && (() => {
 				const maxScore = Math.max(...Object.values(scores));
@@ -560,7 +749,21 @@ export default function GamePage({
 
 							<div className="mt-10 flex flex-col gap-3">
 								<button
-									onClick={() => window.location.reload()}
+									onClick={() => {
+										// Reset game in DB then notify all players via WS
+										fetch(`/api/games/${game_id}`, {
+											method: "PATCH",
+											headers: { "Content-Type": "application/json" },
+											body: JSON.stringify({ reset: true }),
+										})
+											.then(() => {
+												const ws = wsRef.current;
+												if (ws && ws.readyState === WebSocket.OPEN) {
+													ws.send(JSON.stringify({ type: "game-reset" }));
+												}
+											})
+											.catch(() => {});
+									}}
 									className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-body text-sm font-semibold tracking-wide transition-all duration-200 hover:shadow-[0px_20px_40px_rgba(45,52,51,0.10)] hover:scale-[1.02] cursor-pointer"
 								>
 									Play Again
