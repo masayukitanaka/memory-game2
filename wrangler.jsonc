@@ -9,7 +9,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "memory-game2",
-	"main": ".open-next/worker.js",
+	"main": "workers/index.ts",
 	"compatibility_date": "2026-04-10",
 	"compatibility_flags": [
 		"nodejs_compat",
@@ -35,7 +35,21 @@
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "GAME_ROOM",
+				"class_name": "GameRoom"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_classes": ["GameRoom"]
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback, useEffect, use } from "react";
+import { useState, useCallback, useEffect, useRef, use } from "react";
 import decksData from "../../../../../data/decks.json";
 
 type Pair = { id: string; front: string; back: string };
@@ -72,7 +72,7 @@ export default function GamePage({
 }: {
 	params: Promise<{ deck_id: string; game_id: string }>;
 }) {
-	const { deck_id } = use(params);
+	const { deck_id, game_id } = use(params);
 
 	const deck = decksData.decks.find((d) => d.deck_id === deck_id);
 	const pairs = deck ? parsePairs(deck.pairs) : [];
@@ -85,6 +85,32 @@ export default function GamePage({
 	);
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [isLocked, setIsLocked] = useState(false);
+	const [showTestDialog, setShowTestDialog] = useState(false);
+	const wsRef = useRef<WebSocket | null>(null);
+
+	// WebSocket connection
+	useEffect(() => {
+		const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+		const url = `${proto}//${window.location.host}/api/ws/${game_id}`;
+		const ws = new WebSocket(url);
+
+		ws.addEventListener("message", (event) => {
+			try {
+				const data = JSON.parse(event.data);
+				if (data.type === "show-dialog") {
+					setShowTestDialog(true);
+				}
+			} catch {
+				// ignore malformed messages
+			}
+		});
+
+		wsRef.current = ws;
+		return () => {
+			ws.close();
+			wsRef.current = null;
+		};
+	}, [game_id]);
 
 	// Build and shuffle cards on mount (client only) to avoid hydration mismatch
 	useEffect(() => {
@@ -93,6 +119,13 @@ export default function GamePage({
 		setCards(built);
 		setCardStates(Object.fromEntries(built.map((c) => [c.id, "facedown" as CardState])));
 	}, [deck_id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+	const handleTestWin = useCallback(() => {
+		const ws = wsRef.current;
+		if (ws && ws.readyState === WebSocket.OPEN) {
+			ws.send(JSON.stringify({ type: "test-win" }));
+		}
+	}, []);
 
 	const totalPairs = pairs.length;
 	const matchedCount = Object.values(scores).reduce((a, b) => a + b, 0);
@@ -184,7 +217,12 @@ export default function GamePage({
 					<span className="font-display text-base font-bold tracking-tight text-on-surface capitalize">
 						{deck_id.replace(/-/g, " ")}
 					</span>
-					<div className="w-16" />
+					<button
+						onClick={handleTestWin}
+						className="font-body text-xs font-semibold px-4 py-2 rounded-full bg-primary-container text-primary hover:bg-primary hover:text-on-primary transition-colors cursor-pointer"
+					>
+						Test Win
+					</button>
 				</div>
 			</nav>
 
@@ -294,6 +332,26 @@ export default function GamePage({
 					</div>
 				</div>
 			</div>
+
+			{/* Test Win dialog */}
+			{showTestDialog && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/70 backdrop-blur-[24px]">
+					<div className="bg-surface-lowest rounded-[3rem] p-12 sm:p-16 max-w-sm w-full mx-6 shadow-[0px_20px_40px_rgba(45,52,51,0.06)] text-center">
+						<h2 className="font-display text-2xl sm:text-3xl font-extrabold text-on-surface">
+							Test Win!
+						</h2>
+						<p className="mt-4 font-body text-sm text-on-surface-variant">
+							This message was broadcast to all connected players via WebSocket.
+						</p>
+						<button
+							onClick={() => setShowTestDialog(false)}
+							className="mt-8 inline-flex items-center justify-center h-12 px-8 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-body text-sm font-semibold tracking-wide transition-all duration-200 hover:shadow-[0px_20px_40px_rgba(45,52,51,0.10)] hover:scale-[1.02] cursor-pointer"
+						>
+							OK
+						</button>
+					</div>
+				</div>
+			)}
 
 			{/* Completion overlay */}
 			{isComplete && (() => {
