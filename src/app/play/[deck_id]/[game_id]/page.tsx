@@ -138,6 +138,15 @@ export default function GamePage({
 						setFlippedCards([]);
 						setIsLocked(false);
 					}, 500);
+					// Persist to DB
+					fetch(`/api/games/${game_id}`, {
+						method: "PATCH",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							matchedCardIds: [Number(id1), Number(id2)],
+							scorerSessionId: msg.scorerSessionId,
+						}),
+					}).catch(() => {});
 					break;
 				}
 				case "cards-unmatched": {
@@ -153,6 +162,14 @@ export default function GamePage({
 						setCurrentPlayerIndex(msg.nextPlayerIndex);
 						setIsLocked(false);
 					}, 1000);
+					// Persist turn change to DB
+					fetch(`/api/games/${game_id}`, {
+						method: "PATCH",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							currentPlayerIndex: msg.nextPlayerIndex,
+						}),
+					}).catch(() => {});
 					break;
 				}
 				case "player-disconnected": {
@@ -174,7 +191,11 @@ export default function GamePage({
 		fetch(`/api/games/${game_id}`)
 			.then((res) => (res.ok ? res.json() : null))
 			.then((raw) => {
-				const game = raw as { cards?: DbCard[] } | null;
+				const game = raw as {
+					cards?: DbCard[];
+					players?: Player[];
+					current_player_index?: number;
+				} | null;
 				if (!game?.cards) return;
 				// Sort by position to ensure consistent order across clients
 				const sorted = [...game.cards].sort((a, b) => a.position - b.position);
@@ -189,6 +210,14 @@ export default function GamePage({
 				setCardStates(Object.fromEntries(
 					mapped.map((c) => [c.id, (game.cards!.find((dc) => dc.id === Number(c.id))?.isMatched ? "matched" : "facedown") as CardState])
 				));
+				// Restore players, scores, and turn from DB
+				if (game.players && game.players.length > 0) {
+					setPlayers(game.players);
+					setScores(Object.fromEntries(game.players.map((p) => [p.sessionId, p.score])));
+				}
+				if (game.current_player_index !== undefined) {
+					setCurrentPlayerIndex(game.current_player_index);
+				}
 			})
 			.catch(() => {});
 	}, [game_id]);

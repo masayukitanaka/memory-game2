@@ -77,6 +77,14 @@ INSERT INTO memory_game.decks (deck_id, description, number_of_cards, pairs) VAL
   '["Hello", "こんにちは", "Thank you", "ありがとう", "Good morning", "おはよう", "Goodbye", "さようなら", "Yes", "はい", "No", "いいえ", "Please", "お願いします", "Sorry", "ごめんなさい"]'::jsonb
 );
 
+INSERT INTO memory_game.decks (deck_id, description, number_of_cards, pairs) VALUES
+(
+  'hiragana-katakana-test',
+  'Test',
+  6,
+  '["あ", "ア", "い", "イ", "う", "ウ"'::jsonb
+);
+
 
 -- =====================================================
 -- Games Table
@@ -140,4 +148,3 @@ CREATE POLICY "allow all on games"
   FOR ALL
   USING (true)
   WITH CHECK (true);
-  
