@@ -61,8 +61,8 @@ function buildCards(pairs: Pair[]): Card[] {
 }
 
 // --- Mock players ---
-const MOCK_PLAYERS = [
-	{ id: "p1", name: "You" },
+const DEFAULT_PLAYER_NAME = "no name";
+const OTHER_PLAYERS = [
 	{ id: "p2", name: "Hana" },
 	{ id: "p3", name: "Kai" },
 ];
@@ -77,11 +77,18 @@ export default function GamePage({
 	const deck = decksData.decks.find((d) => d.deck_id === deck_id);
 	const pairs = deck ? parsePairs(deck.pairs) : [];
 
+	const [myName, setMyName] = useState(DEFAULT_PLAYER_NAME);
+	const [isEditingName, setIsEditingName] = useState(false);
+	const [editNameValue, setEditNameValue] = useState("");
+	const editInputRef = useRef<HTMLInputElement | null>(null);
+
+	const players = [{ id: "p1", name: myName }, ...OTHER_PLAYERS];
+
 	const [cards, setCards] = useState<Card[]>([]);
 	const [cardStates, setCardStates] = useState<Record<string, CardState>>({});
 	const [selected, setSelected] = useState<string[]>([]);
 	const [scores, setScores] = useState<Record<string, number>>(() =>
-		Object.fromEntries(MOCK_PLAYERS.map((p) => [p.id, 0]))
+		Object.fromEntries([{ id: "p1" }, ...OTHER_PLAYERS].map((p) => [p.id, 0]))
 	);
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [isLocked, setIsLocked] = useState(false);
@@ -127,14 +134,62 @@ export default function GamePage({
 		}
 	}, []);
 
+	// Load player name: localStorage first (instant), then session API
+	useEffect(() => {
+		const saved = localStorage.getItem("playerName");
+		if (saved) setMyName(saved);
+
+		fetch("/api/session", { credentials: "include" })
+			.then((res) => (res.ok ? res.json() : null))
+			.then((raw) => {
+				const json = raw as { data?: { playerName?: string } } | null;
+				if (json?.data?.playerName) {
+					setMyName(json.data.playerName);
+					localStorage.setItem("playerName", json.data.playerName);
+				}
+			})
+			.catch(() => {});
+	}, []);
+
+	// Focus the edit input when editing starts
+	useEffect(() => {
+		if (isEditingName) {
+			editInputRef.current?.focus();
+			editInputRef.current?.select();
+		}
+	}, [isEditingName]);
+
+	const startEditingName = useCallback(() => {
+		setEditNameValue(myName === DEFAULT_PLAYER_NAME ? "" : myName);
+		setIsEditingName(true);
+	}, [myName]);
+
+	const saveName = useCallback(() => {
+		const trimmed = editNameValue.trim();
+		const newName = trimmed || DEFAULT_PLAYER_NAME;
+		setMyName(newName);
+		setIsEditingName(false);
+		localStorage.setItem("playerName", newName);
+		fetch("/api/session", {
+			method: "PATCH",
+			credentials: "include",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ playerName: newName }),
+		}).catch(() => {});
+	}, [editNameValue]);
+
+	const cancelEditing = useCallback(() => {
+		setIsEditingName(false);
+	}, []);
+
 	const totalPairs = pairs.length;
 	const matchedCount = Object.values(scores).reduce((a, b) => a + b, 0);
 	const isComplete = matchedCount === totalPairs;
-	const currentPlayer = MOCK_PLAYERS[currentPlayerIndex];
+	const currentPlayer = players[currentPlayerIndex];
 
 	const advanceTurn = useCallback(() => {
-		setCurrentPlayerIndex((i) => (i + 1) % MOCK_PLAYERS.length);
-	}, []);
+		setCurrentPlayerIndex((i) => (i + 1) % players.length);
+	}, [players.length]);
 
 	const handleCardClick = useCallback(
 		(cardId: string) => {
@@ -229,8 +284,9 @@ export default function GamePage({
 			{/* Players bar */}
 			<div className="max-w-4xl mx-auto w-full px-6 sm:px-10 pt-6 pb-2">
 				<div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-					{MOCK_PLAYERS.map((player) => {
+					{players.map((player) => {
 						const isActive = player.id === currentPlayer.id;
+						const isMe = player.id === "p1";
 						return (
 							<div
 								key={player.id}
@@ -251,7 +307,38 @@ export default function GamePage({
 										isActive ? "text-primary" : "text-on-surface-variant"
 									}`}
 								>
-									{player.name}
+									{isMe ? (
+										isEditingName ? (
+											<span className="inline-flex items-center gap-1">
+												<input
+													ref={editInputRef}
+													type="text"
+													value={editNameValue}
+													onChange={(e) => setEditNameValue(e.target.value)}
+													onKeyDown={(e) => {
+														if (e.key === "Enter") saveName();
+														if (e.key === "Escape") cancelEditing();
+													}}
+													onBlur={saveName}
+													maxLength={20}
+													className="w-20 bg-transparent border-b border-current outline-none text-sm font-semibold"
+												/>
+												<span className="opacity-60">(You)</span>
+											</span>
+										) : (
+											<span>
+												<button
+													onClick={startEditingName}
+													className="underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer"
+												>
+													{player.name}
+												</button>
+												<span className="opacity-60"> (You)</span>
+											</span>
+										)
+									) : (
+										player.name
+									)}
 								</span>
 								<span
 									className={`font-display text-lg font-bold ${
@@ -356,7 +443,7 @@ export default function GamePage({
 			{/* Completion overlay */}
 			{isComplete && (() => {
 				const maxScore = Math.max(...Object.values(scores));
-				const winners = MOCK_PLAYERS.filter((p) => scores[p.id] === maxScore);
+				const winners = players.filter((p) => scores[p.id] === maxScore);
 				const isTie = winners.length > 1;
 
 				return (
@@ -368,7 +455,7 @@ export default function GamePage({
 
 							{/* Final scores */}
 							<div className="mt-8 flex flex-col gap-2">
-								{MOCK_PLAYERS
+								{players
 									.slice()
 									.sort((a, b) => scores[b.id] - scores[a.id])
 									.map((player, i) => (

@@ -8,6 +8,7 @@ Cloudflare の Nextjs テンプレートで作成しました。
 ## サーバの起動・停止
  
 サーバの起動・停止は人間が行う。Claude が勝手に `npm run dev` や `wrangler dev` などのサーバ起動・停止コマンドを実行しないこと。
+tsc でTypescriptのコンパイルをすることは問題ない。
  
 ## ライブラリのインストール
 

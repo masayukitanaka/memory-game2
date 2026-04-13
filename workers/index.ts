@@ -21,7 +21,8 @@ export default {
 		}
 
 		// Delegate everything else to the OpenNext handler
+		// @ts-ignore — .open-next/worker.js is generated after next build; wrangler resolves it at bundle time
 		const { default: nextHandler } = await import("../.open-next/worker.js");
 		return nextHandler.fetch(request, env, ctx);
 	},
-} satisfies ExportedHandler<Env>;
+};
