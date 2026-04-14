@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 
 type Deck = {
 	deck_id: string;
+	title: string;
 	description: string;
 	number_of_cards: number;
 	pairs: string[];
@@ -104,7 +105,7 @@ export default function Home() {
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 							{decks.map((deck, i) => {
 								const accent = ACCENT_COLORS[i % ACCENT_COLORS.length];
-								const title = deck.deck_id.replace(/-/g, " ");
+								const title = deck.title;
 								const pairCount = deck.number_of_cards / 2;
 
 								return (
@@ -149,7 +150,7 @@ export default function Home() {
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/70 backdrop-blur-[24px]">
 					<div className="bg-surface-lowest rounded-[3rem] p-12 sm:p-16 max-w-sm w-full mx-6 shadow-[0px_20px_40px_rgba(45,52,51,0.06)] text-center">
 						<h2 className="font-display text-2xl sm:text-3xl font-extrabold text-on-surface capitalize">
-							{selectedDeck.deck_id.replace(/-/g, " ")}
+							{selectedDeck.title}
 						</h2>
 						<p className="mt-4 font-body text-sm text-on-surface-variant">
 							{selectedDeck.description}

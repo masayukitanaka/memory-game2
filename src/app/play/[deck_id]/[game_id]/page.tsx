@@ -67,6 +67,8 @@ export default function GamePage({
 	const { deck_id, game_id } = use(params);
 
 	const [totalPairsCount, setTotalPairsCount] = useState(0);
+	const [deckTitle, setDeckTitle] = useState(deck_id.replace(/-/g, " "));
+	const [deckDescription, setDeckDescription] = useState("");
 	const [myName, setMyName] = useState(DEFAULT_PLAYER_NAME);
 	const [mySessionId, setMySessionId] = useState<string | null>(null);
 	const [isEditingName, setIsEditingName] = useState(false);
@@ -215,8 +217,12 @@ export default function GamePage({
 					cards?: DbCard[];
 					players?: Player[];
 					current_player_index?: number;
+					deck_title?: string;
+					deck_description?: string;
 				} | null;
 				if (!game?.cards) return;
+				if (game.deck_title) setDeckTitle(game.deck_title);
+				if (game.deck_description) setDeckDescription(game.deck_description);
 				// Sort by position to ensure consistent order across clients
 				const sorted = [...game.cards].sort((a, b) => a.position - b.position);
 				const mapped: Card[] = sorted.map((c) => ({
@@ -473,9 +479,6 @@ export default function GamePage({
 					>
 						&larr; Back
 					</Link>
-					<span className="font-display text-base font-bold tracking-tight text-on-surface capitalize">
-						{deck_id.replace(/-/g, " ")}
-					</span>
 					<button
 						onClick={() => setShowResetConfirm(true)}
 						className="font-body text-xs font-semibold px-4 py-2 rounded-full bg-surface-low text-on-surface-variant hover:bg-on-surface/10 transition-colors cursor-pointer"
@@ -484,6 +487,18 @@ export default function GamePage({
 					</button>
 				</div>
 			</nav>
+
+			{/* Deck title & description */}
+			<div className="max-w-4xl mx-auto w-full px-6 sm:px-10 pt-6">
+				<h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">
+					{deckTitle}
+				</h1>
+				{deckDescription && (
+					<p className="mt-2 font-body text-sm sm:text-base leading-relaxed text-on-surface-variant">
+						{deckDescription}
+					</p>
+				)}
+			</div>
 
 			{/* Players bar */}
 			<div className="max-w-4xl mx-auto w-full px-6 sm:px-10 pt-6 pb-2">

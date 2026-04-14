@@ -7,7 +7,7 @@ export async function GET() {
 		// @ts-ignore — memory_game schema is not in generated types
 		.schema("memory_game")
 		.from("decks")
-		.select("deck_id, description, number_of_cards, pairs")
+		.select("deck_id, title, description, number_of_cards, pairs")
 		.order("deck_id");
 
 	if (error) {

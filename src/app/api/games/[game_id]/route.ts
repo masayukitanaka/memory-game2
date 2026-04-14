@@ -20,7 +20,20 @@ export async function GET(
 		return NextResponse.json({ error: "Game not found" }, { status: 404 });
 	}
 
-	return NextResponse.json(game);
+	// Fetch deck title
+	const { data: deck } = await supabase
+		// @ts-ignore
+		.schema("memory_game")
+		.from("decks")
+		.select("title, description")
+		.eq("deck_id", game.deck_id)
+		.single();
+
+	return NextResponse.json({
+		...game,
+		deck_title: (deck?.title as string) ?? game.deck_id,
+		deck_description: (deck?.description as string) ?? "",
+	});
 }
 
 type PatchBody = {

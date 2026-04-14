@@ -39,7 +39,8 @@ GRANT ALL ON ALL TABLES IN SCHEMA memory_game TO anon;
 -- =====================================================
 
 CREATE TABLE memory_game.decks (
-  deck_id          TEXT PRIMARY KEY,                -- デッキID (例: hiragana-katakana)
+  deck_id          TEXT PRIMARY KEY,                -- デッキID (例: afbrrbrab)
+  title            TEXT        NOT NULL,            -- デッキタイトル (例: hiragana-katakana)
   description      TEXT        NOT NULL,            -- デッキの説明
   number_of_cards  INTEGER     NOT NULL,            -- カードの枚数（常に偶数）
   pairs            JSONB       NOT NULL,            -- ペアの配列（隣接する要素がペア）
@@ -82,7 +83,7 @@ INSERT INTO memory_game.decks (deck_id, description, number_of_cards, pairs) VAL
   'hiragana-katakana-test',
   'Test',
   6,
-  '["あ", "ア", "い", "イ", "う", "ウ"'::jsonb
+  '["あ", "ア", "い", "イ", "う", "ウ"]'::jsonb
 );
 
 
